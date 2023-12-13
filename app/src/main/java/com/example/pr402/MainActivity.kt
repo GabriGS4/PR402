@@ -15,9 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -36,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pr402.ui.theme.PR402Theme
@@ -70,12 +76,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun concesionario() {
     val topAppBarHeight = 56.dp // Puedes ajustar este valor según tus necesidades
-    var showListadoVehiculos by remember { mutableStateOf(true) }
-    var showCrearVehiculo by remember { mutableStateOf(false) }
+    var showListadoVehiculos = remember { mutableStateOf(true) }
+    var showCrearVehiculo = remember { mutableStateOf(false) }
     var showElegirNuevoVehiculo by remember { mutableStateOf(false) }
-    val tipoVehiculos = arrayOf("Furgoneta", "Moto", "Patinete", "Trailer")
+    val tipoVehiculos = arrayOf("Coche", "Furgoneta", "Moto", "Patinete", "Trailer")
     var selectedVehiculo by remember { mutableStateOf(tipoVehiculos[0]) }
-    Scaffold (
+
+    var vehiculos = remember { mutableStateOf(arrayOf<Vehiculo>()) }
+
+
+
+    Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -101,7 +112,7 @@ fun concesionario() {
                     .padding(top = topAppBarHeight + 16.dp, start = 16.dp, end = 16.dp)
                     .align(Alignment.Center)
             ) {
-                if (showListadoVehiculos) {
+                if (showListadoVehiculos.value) {
                     // Título de la lista
                     Text(
                         text = "LISTADO DE VEHÍCULOS",
@@ -140,7 +151,7 @@ fun concesionario() {
                         }
                     }
 
-                    listadoVehiculos(showListadoVehiculos)
+                    listadoVehiculos(showListadoVehiculos, vehiculos)
                 }
                 if (showElegirNuevoVehiculo) {
                     AlertDialog(
@@ -165,7 +176,11 @@ fun concesionario() {
                                         value = selectedVehiculo,
                                         onValueChange = {},
                                         readOnly = true,
-                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                        trailingIcon = {
+                                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                                expanded = expanded
+                                            )
+                                        },
                                         modifier = Modifier.menuAnchor()
                                     )
 
@@ -194,8 +209,8 @@ fun concesionario() {
                             TextButton(
                                 onClick = {
                                     showElegirNuevoVehiculo = false
-                                    showListadoVehiculos = false
-                                    showCrearVehiculo = true
+                                    showListadoVehiculos.value = false
+                                    showCrearVehiculo.value = true
                                 }
                             ) {
                                 Text("Aceptar")
@@ -211,10 +226,15 @@ fun concesionario() {
                             }
                         }
 
-                        )
+                    )
                 }
-                if (showCrearVehiculo) {
-                    crearVehiculo(showCrearVehiculo, selectedVehiculo)
+                if (showCrearVehiculo.value) {
+                    crearVehiculo(
+                        showCrearVehiculo,
+                        selectedVehiculo,
+                        showListadoVehiculos,
+                        vehiculos
+                    )
                 }
             }
         }
@@ -223,31 +243,29 @@ fun concesionario() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun listadoVehiculos(showListadoVehiculos: Boolean) {
-    if (showListadoVehiculos) {
+fun listadoVehiculos(
+    showListadoVehiculos: MutableState<Boolean>,
+    vehiculos: MutableState<Array<Vehiculo>>
+) {
+    if (showListadoVehiculos.value) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 8.dp)
         ) {
             var busquedaText by remember { mutableStateOf("") }
-            var vehiculos = arrayOf<Vehiculo>(
-                Vehiculo(4, 2000, 5, "Rojo", "Seat Ibiza"),
-                Vehiculo(4, 2000, 5, "Azul", "Seat León"),
-                Vehiculo(4, 2000, 5, "Verde", "Seat Arona"),
-                Vehiculo(4, 2000, 5, "Blanco", "Seat Ateca"),
-                Vehiculo(2, 9000, 2, "Verde", "Yamaha R6"),
-            )
+
+
             // Función para realizar la búsqueda
             fun buscarVehiculos(): Array<Vehiculo> {
                 val busquedaLowerCase = busquedaText.lowercase()
 
                 return if (busquedaLowerCase.isBlank()) {
                     // Si la búsqueda está en blanco, mostrar todos los vehiculos
-                    vehiculos
+                    vehiculos.value
                 } else {
                     // Si la búsqueda no está en blanco, mostrar los vehiculos que coincidan con la búsqueda
-                    vehiculos.filter {
+                    vehiculos.value.filter {
                         it.modelo.lowercase().contains(busquedaLowerCase)
                     }.toTypedArray()
                 }
@@ -318,16 +336,17 @@ fun listadoVehiculos(showListadoVehiculos: Boolean) {
                                         .padding(8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                        Text(
-                                            text = "Modelo: ${vehiculo.modelo}\n" +
-                                                    "Color: ${vehiculo.color}\n" +
-                                                    "Motor: ${vehiculo.motor}\n" +
-                                                    "Asientos: ${vehiculo.asientos}\n" +
-                                                    "Ruedas: ${vehiculo.ruedas}\n",
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .padding(4.dp)
-                                        )
+                                    Text(
+                                        text = "Tipo: ${vehiculo.tipo}\n" +
+                                                "Modelo: ${vehiculo.modelo}\n" +
+                                                "Color: ${vehiculo.color}\n" +
+                                                "Motor: ${vehiculo.motor}\n" +
+                                                "Asientos: ${vehiculo.asientos}\n" +
+                                                "Ruedas: ${vehiculo.ruedas}\n",
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(4.dp)
+                                    )
 
                                 }
                             }
@@ -342,25 +361,287 @@ fun listadoVehiculos(showListadoVehiculos: Boolean) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun crearVehiculo(showCrearVehiculo: Boolean, selectedVehiculo: String ) {
+fun crearVehiculo(
+    showCrearVehiculo: MutableState<Boolean>,
+    selectedVehiculo: String,
+    showListadoVehiculos: MutableState<Boolean>,
+    vehiculos: MutableState<Array<Vehiculo>>
+) {
+    var modeloText by remember { mutableStateOf("") }
+    var colorText by remember { mutableStateOf("") }
+    var motorText by remember { mutableStateOf("") }
+    var asientosText by remember { mutableStateOf("") }
+    var ruedasText by remember { mutableStateOf("") }
+    var cargaText by remember { mutableStateOf("") }
+    var errorText = remember { mutableListOf<String>() }
+    var error by remember { mutableStateOf(false) }
+
     // - En el caso de los patinetes se ha de controlar que no se ponga asiento.
     //- En el de los tráileres que al menos tengan 6 ruedas, además de introducir la
     //carga máxima.
     //- En las furgonetas que tengan como máximo 6 ruedas y se necesita saber la
     //carga máxima.
     //- Las motos no pueden tener más de dos asientos.
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 8.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "CREAR VEHÍCULO $selectedVehiculo",
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 8.dp)
-        ) {
-            var modeloText by remember { mutableStateOf("") }
-            var colorText by remember { mutableStateOf("") }
-            var motorText by remember { mutableStateOf("") }
-            var asientosText by remember { mutableStateOf("") }
-            var ruedasText by remember { mutableStateOf("") }
-            var errorText by remember { mutableStateOf("") }
-            var error by remember { mutableStateOf(false) }
+                .padding(8.dp)
+                .fillMaxWidth(),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
 
+        OutlinedTextField(
+            value = modeloText,
+            onValueChange = { modeloText = it },
+            label = { Text("Modelo") },
+            maxLines = 1,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        )
+        OutlinedTextField(
+            value = colorText,
+            onValueChange = { colorText = it },
+            label = { Text("Color") },
+            maxLines = 1,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        )
+        OutlinedTextField(
+            value = motorText,
+            onValueChange = {
+                // Solo actualiza el valor si es un número
+                if (it.toIntOrNull() != null) {
+                    motorText = it
+                }
+
+            },
+            label = { Text("Motor") },
+            maxLines = 1,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Number
+            )
+        )
+        if (selectedVehiculo != "Patinete") {
+            OutlinedTextField(
+                value = asientosText,
+                onValueChange = {
+                    // Solo actualiza el valor si es un número
+                    if (it.toIntOrNull() != null) {
+                        asientosText = it
+                    }
+                },
+                label = { Text("Asientos") },
+                maxLines = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number
+                )
+            )
+        }
+        OutlinedTextField(
+            value = ruedasText,
+            onValueChange = {
+                // Solo actualiza el valor si es un número
+                if (it.toIntOrNull() != null) {
+                    ruedasText = it
+                }
+            },
+            label = { Text("Ruedas") },
+            maxLines = 1,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Number
+            )
+        )
+
+        if (selectedVehiculo == "Furgoneta" || selectedVehiculo == "Trailer") {
+            OutlinedTextField(
+                value = cargaText,
+                onValueChange = {
+                    // Solo actualiza el valor si es un número
+                    if (it.toIntOrNull() != null) {
+                        cargaText = it
+                    }
+                },
+                label = { Text("Carga máxima") },
+                maxLines = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number
+                )
+            )
+        }
+        if (error) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+
+            ) {
+                // Recorremos los errores de errorText
+                errorText.forEach {
+                    // Mostramos un mensaje de error por cada error
+                    Text(
+                        text = it,
+                        modifier = Modifier
+                            .padding(8.dp),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                errorText.clear()
+            }
+
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Button(
+                onClick = {
+                    showCrearVehiculo.value = false
+                    showListadoVehiculos.value = true
+                },
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                Text("Cancelar")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+
+            ElevatedButton(
+                onClick = {
+                    error = false
+                    if (modeloText == "") {
+                        error = true
+                        errorText.add("El modelo no puede estar vacío")
+                    }
+                    if (colorText == "") {
+                        error = true
+                        errorText.add("El color no puede estar vacío")
+                    }
+                    if (motorText == "") {
+                        error = true
+                        errorText.add("El motor no puede estar vacío")
+                    }
+                    if (asientosText == "" && selectedVehiculo != "Patinete") {
+                        error = true
+                        errorText.add("Los asientos no pueden estar vacíos")
+                    }
+                    if (ruedasText == "") {
+                        error = true
+                        errorText.add("Las ruedas no pueden estar vacías")
+                    }
+                    if (cargaText == "" && selectedVehiculo == "Furgoneta") {
+                        error = true
+                        errorText.add("La carga no puede estar vacía")
+                    }
+                    if (selectedVehiculo == "Patinete") {
+                        if (asientosText != "") {
+                            error = true
+                            errorText.add("Los patinetes no tienen asientos")
+                        }
+                    }
+                    if (selectedVehiculo == "Trailer") {
+                        if (ruedasText != "" && ruedasText.toInt() < 6) {
+                            error = true
+                            errorText.add("Los trailers tienen que tener al menos 6 ruedas")
+                        }
+                    }
+                    if (selectedVehiculo == "Furgoneta") {
+                        if (ruedasText != "" && ruedasText.toInt() > 6) {
+                            error = true
+                            errorText.add("Las furgonetas no pueden tener más de 6 ruedas")
+                        }
+                    }
+                    if (selectedVehiculo == "Moto") {
+                        if (asientosText != "" && asientosText.toInt() > 2) {
+                            error = true
+                            errorText.add("Las motos no pueden tener más de 2 asientos")
+                        }
+                    }
+                    if (!error) {
+                        // Añadimos el nuevo vehículo al array de nuevos vehiculos
+                        val newVehicle = when (selectedVehiculo) {
+                            "Coche" -> Coche(
+                                ruedasText.toInt(),
+                                motorText.toInt(),
+                                asientosText.toInt(),
+                                colorText,
+                                modeloText,
+                                selectedVehiculo
+                            )
+
+                            "Furgoneta" -> Furgoneta(
+                                ruedasText.toInt(),
+                                motorText.toInt(),
+                                asientosText.toInt(),
+                                colorText,
+                                modeloText,
+                                selectedVehiculo,
+                                cargaText.toInt()
+                            )
+
+                            "Moto" -> Moto(
+                                ruedasText.toInt(),
+                                motorText.toInt(),
+                                asientosText.toInt(),
+                                colorText,
+                                modeloText,
+                                selectedVehiculo
+                            )
+
+                            "Patinete" -> Patinete(
+                                ruedasText.toInt(),
+                                motorText.toInt(),
+                                asientosText.toInt(),
+                                colorText,
+                                modeloText,
+                                selectedVehiculo
+                            )
+
+                            else -> Trailer(
+                                ruedasText.toInt(),
+                                motorText.toInt(),
+                                asientosText.toInt(),
+                                colorText,
+                                modeloText,
+                                selectedVehiculo
+                            )
+                        }
+                        // Actualizamos el array de vehículos
+                        vehiculos.value = vehiculos.value.plus(newVehicle)
+                        showCrearVehiculo.value = false
+                        showListadoVehiculos.value = true
+
+                    }
+                },
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                Text("Crear Vehículo")
+            }
+
+        }
     }
 }

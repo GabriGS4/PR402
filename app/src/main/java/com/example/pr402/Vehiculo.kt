@@ -7,18 +7,20 @@ open class Vehiculo {
     var asientos: Int
     var color: String
     var modelo: String
+    var tipo: String
 
     // Constructor
-    constructor(ruedas: Int, motor: Int, asientos: Int, color: String, modelo: String) {
+    constructor(ruedas: Int, motor: Int, asientos: Int, color: String, modelo: String, tipo: String) {
         this.ruedas = ruedas
         this.motor = motor
         this.asientos = asientos
         this.color = color
         this.modelo = modelo
+        this.tipo = tipo
     }
 
     // toString
     override fun toString(): String {
-        return "Vehiculo(ruedas=$ruedas, motor=$motor, asientos=$asientos, color='$color', modelo='$modelo')"
+        return "Vehiculo(tipo=$tipo, ruedas=$ruedas, motor=$motor, asientos=$asientos, color='$color', modelo='$modelo')"
     }
 }
