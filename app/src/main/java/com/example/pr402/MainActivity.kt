@@ -48,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -79,6 +80,8 @@ fun concesionario() {
     var showListadoVehiculos = remember { mutableStateOf(true) }
     var showCrearVehiculo = remember { mutableStateOf(false) }
     var showElegirNuevoVehiculo by remember { mutableStateOf(false) }
+    var showConsultarVehiculos by remember { mutableStateOf(false) }
+    var showPreguntarConsultarVehiculos by remember { mutableStateOf(false) }
     val tipoVehiculos = arrayOf("Coche", "Furgoneta", "Moto", "Patinete", "Trailer")
     var selectedVehiculo by remember { mutableStateOf(tipoVehiculos[0]) }
 
@@ -143,6 +146,7 @@ fun concesionario() {
 
                         ElevatedButton(
                             onClick = {
+                                showPreguntarConsultarVehiculos = true
                             },
                             modifier = Modifier
                                 .weight(1f)
@@ -234,6 +238,126 @@ fun concesionario() {
                         selectedVehiculo,
                         showListadoVehiculos,
                         vehiculos
+                    )
+                }
+                if (showPreguntarConsultarVehiculos) {
+                    AlertDialog(
+                        title = {
+                            Text(text = "Consultar número de vehículos")
+                        },
+                        text = {
+                            var expanded by remember { mutableStateOf(false) }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp)
+                            ) {
+                                ExposedDropdownMenuBox(
+                                    expanded = expanded,
+                                    onExpandedChange = {
+                                        expanded = !expanded
+                                    }
+                                ) {
+                                    TextField(
+                                        value = selectedVehiculo,
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        trailingIcon = {
+                                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                                expanded = expanded
+                                            )
+                                        },
+                                        modifier = Modifier.menuAnchor()
+                                    )
+
+                                    ExposedDropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false }
+                                    ) {
+                                        tipoVehiculos.forEach { item ->
+                                            DropdownMenuItem(
+                                                text = { Text(text = item) },
+                                                onClick = {
+                                                    selectedVehiculo = item
+                                                    expanded = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                        },
+                        onDismissRequest = {
+                            showPreguntarConsultarVehiculos = false
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showPreguntarConsultarVehiculos = false
+                                    showConsultarVehiculos = true
+                                }
+                            ) {
+                                Text("Aceptar")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = {
+                                    showPreguntarConsultarVehiculos = false
+                                }
+                            ) {
+                                Text("Cancelar")
+                            }
+                        }
+
+                    )
+                }
+                if (showConsultarVehiculos) {
+                    AlertDialog(
+                        title = {
+                            when (selectedVehiculo) {
+                                "Coche" -> {
+                                    Text(
+                                        text = "Hay ${vehiculos.value.filter { it.tipo == "Coche" }.size} coches"
+                                    )
+                                }
+                                "Furgoneta" -> {
+                                    Text(
+                                        text = "Hay ${vehiculos.value.filter { it.tipo == "Furgoneta" }.size} furgonetas"
+                                    )
+                                }
+                                "Moto" -> {
+                                    Text(
+                                        text = "Hay ${vehiculos.value.filter { it.tipo == "Moto" }.size} motos"
+                                    )
+                                }
+                                "Patinete" -> {
+                                    Text(
+                                        text = "Hay ${vehiculos.value.filter { it.tipo == "Patinete" }.size} patinetes"
+                                    )
+                                }
+                                else -> {
+                                    Text(
+                                        text = "Hay ${vehiculos.value.filter { it.tipo == "Trailer" }.size} trailers"
+                                    )
+                                }
+                            }
+                        },
+
+                        onDismissRequest = {
+                            showConsultarVehiculos = false
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showConsultarVehiculos = false
+                                }
+                            ) {
+                                Text("Aceptar")
+                            }
+                        }
                     )
                 }
             }
@@ -336,6 +460,7 @@ fun listadoVehiculos(
                                         .padding(8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
+
                                     Text(
                                         text = "Tipo: ${vehiculo.tipo}\n" +
                                                 "Modelo: ${vehiculo.modelo}\n" +
@@ -347,6 +472,40 @@ fun listadoVehiculos(
                                             .weight(1f)
                                             .padding(4.dp)
                                     )
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    when (vehiculo.tipo) {
+                                        "Coche" -> {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.car),
+                                                contentDescription = null // decorative element
+                                            )
+                                        }
+                                        "Furgoneta" -> {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.van),
+                                                contentDescription = null // decorative element
+                                            )
+                                        }
+                                        "Moto" -> {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.motorcycle),
+                                                contentDescription = null // decorative element
+                                            )
+                                        }
+                                        "Patinete" -> {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.scooter),
+                                                contentDescription = null // decorative element
+                                            )
+                                        }
+                                        else -> {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.truck),
+                                                contentDescription = null // decorative element
+                                            )
+                                        }
+                                    }
 
                                 }
                             }
