@@ -54,7 +54,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -612,7 +615,11 @@ fun crearVehiculo(
             maxLines = 1,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(8.dp),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            )
         )
         OutlinedTextField(
             value = colorText,
@@ -621,7 +628,11 @@ fun crearVehiculo(
             maxLines = 1,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(8.dp),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            )
         )
         OutlinedTextField(
             value = motorText,
@@ -638,7 +649,8 @@ fun crearVehiculo(
                 .fillMaxWidth()
                 .padding(8.dp),
             keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Number
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next
             )
         )
         if (selectedVehiculo != "Patinete") {
@@ -656,14 +668,15 @@ fun crearVehiculo(
                     .fillMaxWidth()
                     .padding(8.dp),
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
                 )
             )
         }
         OutlinedTextField(
             value = ruedasText,
             onValueChange = {
-                // Solo actualiza el valor si es un número
+                // Solo actualiza el valor si es un número o la cadena está vacía
                 if (it.isEmpty() || it.toIntOrNull() != null) {
                     ruedasText = it
                 }
@@ -673,9 +686,10 @@ fun crearVehiculo(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Number
-            )
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next
+            ),
         )
 
         if (selectedVehiculo == "Furgoneta" || selectedVehiculo == "Trailer") {
@@ -693,7 +707,8 @@ fun crearVehiculo(
                     .fillMaxWidth()
                     .padding(8.dp),
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
                 )
             )
         }
