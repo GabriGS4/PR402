@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,6 +22,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -50,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pr402.ui.theme.PR402Theme
@@ -125,35 +132,48 @@ fun concesionario() {
                             .fillMaxWidth(),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        ElevatedButton(
-                            onClick = {
-                                showElegirNuevoVehiculo = true
-                            },
+                        Row(
                             modifier = Modifier
-                                .weight(1f)
+                                .fillMaxWidth()
+                                .padding(8.dp)
                         ) {
-                            Text("Crear Vehículo")
-                        }
+                            // Primer botón
+                            ElevatedButton(
+                                onClick = {
+                                    showElegirNuevoVehiculo = true
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 8.dp) // Agregamos un espacio entre los botones
+                            ) {
+                                Text(
+                                    "Crear Vehículo",
+                                    textAlign = TextAlign.Center
+                                )
+                            }
 
-                        Spacer(modifier = Modifier.width(8.dp))
-
-
-                        ElevatedButton(
-                            onClick = {
-                                showPreguntarConsultarVehiculos = true
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                        ) {
-                            Text("Consultar Vehículos")
+                            // Segundo botón
+                            ElevatedButton(
+                                onClick = {
+                                    showPreguntarConsultarVehiculos = true
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                            ) {
+                                Text(
+                                    text="Consultar Vehículos",
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
+
 
                     listadoVehiculos(showListadoVehiculos, vehiculos)
                 }
@@ -371,6 +391,12 @@ fun listadoVehiculos(
     showListadoVehiculos: MutableState<Boolean>,
     vehiculos: MutableState<Array<Vehiculo>>
 ) {
+    val carIcon = painterResource(id = R.drawable.car)
+    val vanIcon = painterResource(id = R.drawable.van)
+    val motorcycleIcon = painterResource(id = R.drawable.motorcycle)
+    val scooterIcon = painterResource(id = R.drawable.scooter)
+    val truckIcon = painterResource(id = R.drawable.truck)
+
     if (showListadoVehiculos.value) {
         Column(
             modifier = Modifier
@@ -395,7 +421,6 @@ fun listadoVehiculos(
                 }
             }
 
-            // Campo de búsqueda
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -417,6 +442,8 @@ fun listadoVehiculos(
                         .weight(1f)
                 )
             }
+
+
             // Lista de alumnos
             val resultadosBusqueda by remember(busquedaText) {
                 derivedStateOf {
@@ -438,78 +465,100 @@ fun listadoVehiculos(
                     }
                 } else {
                     items(resultadosBusqueda) { vehiculo ->
+                        var expanded by remember { mutableStateOf(false) }
+
                         // Elemento de la lista para cada alumno
                         Card(
                             elevation = CardDefaults.cardElevation(
                                 defaultElevation = 6.dp
                             ),
-                            onClick = {
-                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp)
+                                .padding(8.dp),
+                            onClick = {
+                                expanded = !expanded
+                            }
                         ) {
-                            Column(
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp)
+                                    .padding(4.dp)
                             ) {
                                 Row(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(8.dp),
+                                        .fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
 
-                                    Text(
-                                        text = "Tipo: ${vehiculo.tipo}\n" +
-                                                "Modelo: ${vehiculo.modelo}\n" +
-                                                "Color: ${vehiculo.color}\n" +
-                                                "Motor: ${vehiculo.motor}\n" +
-                                                "Asientos: ${vehiculo.asientos}\n" +
-                                                "Ruedas: ${vehiculo.ruedas}\n",
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(4.dp)
-                                    )
-
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    when (vehiculo.tipo) {
-                                        "Coche" -> {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.car),
-                                                contentDescription = null // decorative element
-                                            )
-                                        }
-                                        "Furgoneta" -> {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.van),
-                                                contentDescription = null // decorative element
-                                            )
-                                        }
-                                        "Moto" -> {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.motorcycle),
-                                                contentDescription = null // decorative element
-                                            )
-                                        }
-                                        "Patinete" -> {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.scooter),
-                                                contentDescription = null // decorative element
-                                            )
-                                        }
-                                        else -> {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.truck),
-                                                contentDescription = null // decorative element
-                                            )
-                                        }
+                                    val icon = when (vehiculo.tipo) {
+                                        "Coche" -> carIcon
+                                        "Furgoneta" -> vanIcon
+                                        "Moto" -> motorcycleIcon
+                                        "Patinete" -> scooterIcon
+                                        else -> truckIcon
                                     }
 
+                                    Icon(
+                                        painter = icon,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                    )
+
+                                    Spacer(modifier = Modifier.width(2.dp))
+
+
+
+                                    if (!expanded) {
+                                        Text(
+                                            text = "Tipo: ${vehiculo.tipo}\n" +
+                                                    "Modelo: ${vehiculo.modelo}\n" +
+                                                    "Color: ${vehiculo.color}\n",
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(4.dp)
+                                        )
+                                        Icon(
+                                            imageVector = Icons.Default.KeyboardArrowDown,
+                                            contentDescription = "Expand",
+                                        )
+                                    } else {
+                                        Text(
+                                            text = "Tipo: ${vehiculo.tipo}\n" +
+                                                    "Modelo: ${vehiculo.modelo}\n" +
+                                                    "Color: ${vehiculo.color}\n" +
+                                                    "Motor: ${vehiculo.motor}\n" +
+                                                    "Ruedas: ${vehiculo.ruedas}\n" +
+                                                    "Asientos: ${vehiculo.asientos}\n",
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(4.dp)
+                                        )
+                                        Icon(
+                                            imageVector = Icons.Default.KeyboardArrowUp,
+                                            contentDescription = "Expand",
+                                        )
+                                    }
                                 }
+                                // Icono de papelera en la esquina superior derecha
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Eliminar",
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(8.dp)
+                                        .clickable {
+                                            // Lógica para eliminar el vehículo
+                                            vehiculos.value = vehiculos.value
+                                                .filter {
+                                                    it != vehiculo
+                                                }
+                                                .toTypedArray()
+                                        }
+                                )
                             }
                         }
+
                     }
                 }
             }
@@ -578,7 +627,7 @@ fun crearVehiculo(
             value = motorText,
             onValueChange = {
                 // Solo actualiza el valor si es un número
-                if (it.toIntOrNull() != null) {
+                if (it.isEmpty() || it.toIntOrNull() != null) {
                     motorText = it
                 }
 
@@ -597,7 +646,7 @@ fun crearVehiculo(
                 value = asientosText,
                 onValueChange = {
                     // Solo actualiza el valor si es un número
-                    if (it.toIntOrNull() != null) {
+                    if (it.isEmpty() || it.toIntOrNull() != null) {
                         asientosText = it
                     }
                 },
@@ -615,7 +664,7 @@ fun crearVehiculo(
             value = ruedasText,
             onValueChange = {
                 // Solo actualiza el valor si es un número
-                if (it.toIntOrNull() != null) {
+                if (it.isEmpty() || it.toIntOrNull() != null) {
                     ruedasText = it
                 }
             },
@@ -634,7 +683,7 @@ fun crearVehiculo(
                 value = cargaText,
                 onValueChange = {
                     // Solo actualiza el valor si es un número
-                    if (it.toIntOrNull() != null) {
+                    if (it.isEmpty() || it.toIntOrNull() != null) {
                         cargaText = it
                     }
                 },
@@ -703,10 +752,6 @@ fun crearVehiculo(
                         error = true
                         errorText.add("El motor no puede estar vacío")
                     }
-                    if (asientosText == "" && selectedVehiculo != "Patinete") {
-                        error = true
-                        errorText.add("Los asientos no pueden estar vacíos")
-                    }
                     if (ruedasText == "") {
                         error = true
                         errorText.add("Las ruedas no pueden estar vacías")
@@ -714,12 +759,6 @@ fun crearVehiculo(
                     if (cargaText == "" && selectedVehiculo == "Furgoneta") {
                         error = true
                         errorText.add("La carga no puede estar vacía")
-                    }
-                    if (selectedVehiculo == "Patinete") {
-                        if (asientosText != "") {
-                            error = true
-                            errorText.add("Los patinetes no tienen asientos")
-                        }
                     }
                     if (selectedVehiculo == "Trailer") {
                         if (ruedasText != "" && ruedasText.toInt() < 6) {
@@ -737,6 +776,12 @@ fun crearVehiculo(
                         if (asientosText != "" && asientosText.toInt() > 2) {
                             error = true
                             errorText.add("Las motos no pueden tener más de 2 asientos")
+                        }
+                    }
+                    if (selectedVehiculo == "Furgoneta" || selectedVehiculo == "Trailer") {
+                        if (cargaText == "") {
+                            error = true
+                            errorText.add("La carga no puede estar vacía")
                         }
                     }
                     if (!error) {
@@ -773,7 +818,7 @@ fun crearVehiculo(
                             "Patinete" -> Patinete(
                                 ruedasText.toInt(),
                                 motorText.toInt(),
-                                asientosText.toInt(),
+                                0,
                                 colorText,
                                 modeloText,
                                 selectedVehiculo
